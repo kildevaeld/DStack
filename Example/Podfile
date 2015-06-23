@@ -8,8 +8,8 @@ end
 target 'FACoreData_Tests', :exclusive => true do
   pod "FACoreData", :path => "../"
 
-  pod 'Quick'
-  pod 'Nimble'
-  pod 'FBSnapshotTestCase'
-  pod 'Nimble-Snapshots'
+#pod 'Quick'
+#pod 'Nimble'
+#pod 'FBSnapshotTestCase'
+# pod 'Nimble-Snapshots'
 end

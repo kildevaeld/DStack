@@ -1,0 +1,6 @@
+framework module FACoreData {
+  umbrella header "Pods-FACoreData_Example-FACoreData-umbrella.h"
+
+  export *
+  module * { export * }
+}

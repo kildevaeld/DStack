@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import FACoreData
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -16,6 +17,34 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
+        
+//        let model = NSBundle.mainBundle().URLForResource("Model", withExtension: "momd")
+//        let store = databaseURL("item.db")
+//        
+//        if store == nil {
+//            return true
+//        }
+        
+        let coredata = DStack.with("item.db")
+        
+        let result = coredata.mainContext.count("Blog")
+        
+        NSLog("Found %i", result)
+        
+        var entity = coredata.insert("Blog", type:Blog.self)
+        entity.title = "Test title";
+        entity.body = "Some body"
+        
+        NSLog("Entity %@", entity)
+        
+        var error : NSError?
+        
+        coredata.mainContext.saveToPersistentStore(&error)
+        
+        if error != nil {
+            NSLog("Error %@", error!.description)
+        }
+        
         return true
     }
 

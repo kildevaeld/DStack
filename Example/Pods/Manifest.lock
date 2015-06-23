@@ -1,0 +1,14 @@
+PODS:
+  - FACoreData (0.1.0)
+
+DEPENDENCIES:
+  - FACoreData (from `../`)
+
+EXTERNAL SOURCES:
+  FACoreData:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  FACoreData: 8105296aaac837b2a2fdb09dc61caf4041172fa2
+
+COCOAPODS: 0.37.1
