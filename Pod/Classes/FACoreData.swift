@@ -9,7 +9,7 @@
 import Foundation
 import CoreData
 
-public func _databaseURL(path: String, from: NSURL?) -> NSURL? {
+public func _databaseURL(path: String, from: NSURL?, force: Bool = false) -> NSURL? {
     
     let fileManager = NSFileManager.defaultManager()
     
@@ -18,7 +18,33 @@ public func _databaseURL(path: String, from: NSURL?) -> NSURL? {
     if let documentDirectory: NSURL = urls.first as? NSURL {
         // This is where the database should be in the documents directory
         let finalDatabaseURL = documentDirectory.URLByAppendingPathComponent(path)
+      
+      if finalDatabaseURL.checkResourceIsReachableAndReturnError(nil) && force {
+        let contents = fileManager.contentsOfDirectoryAtURL(documentDirectory, includingPropertiesForKeys: nil, options: nil, error: nil)
+        if contents != nil {
+          /*let predicate = NSPredicate(format:"absoluteString LIKE %@", path + "-*")
+          let results = (contents! as NSArray).filteredArrayUsingPredicate(predicate)
+          for file in results {
+            fileManager.removeItemAtURL(file as! NSURL, error: nil)
+            //fileManager.removeItemAtURL(file as , error: nil)
+          }*/
+          let reg = NSRegularExpression(pattern: path + "-*", options: NSRegularExpressionOptions.CaseInsensitive, error: nil)
+          
+          for file in contents! {
+            let url = file as! NSURL
+            let last = url.lastPathComponent!
+            let len = distance(last.startIndex, last.endIndex)
+            let n = reg!.numberOfMatchesInString(last, options: nil, range: NSMakeRange(0,len))
+            
+            if n > 0 {
+              fileManager.removeItemAtURL(url, error: nil)
+            }
+            
+          }
+        }
         
+      }
+      
         if finalDatabaseURL.checkResourceIsReachableAndReturnError(nil) {
             // The file already exists, so just return the URL
             return finalDatabaseURL
@@ -53,8 +79,8 @@ public func _databaseURL(path: String, from: NSURL?) -> NSURL? {
 }
 
 public class DStack : NSObject {
-    public class func databaseURL (path: String, from: NSURL?) -> NSURL? {
-        return _databaseURL(path, from)
+  public class func databaseURL (path: String, from: NSURL?, force: Bool) -> NSURL? {
+        return _databaseURL(path, from, force: force)
     }
     
     
@@ -62,9 +88,9 @@ public class DStack : NSObject {
         return self.with(store, from: nil)
     }
     
-    public class func with(store: String, from: NSURL?) -> DStack {
+  public class func with(store: String, from: NSURL?, force: Bool = false) -> DStack {
         let model = NSManagedObjectModel.mergedModelFromBundles([NSBundle.mainBundle()])
-        let storeURL = DStack.databaseURL(store,from: from)
+        let storeURL = DStack.databaseURL(store,from: from, force: force)
         return DStack(model: model!, storeURL: storeURL!)
     }
     
