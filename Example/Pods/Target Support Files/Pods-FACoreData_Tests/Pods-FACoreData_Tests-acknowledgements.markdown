@@ -1,7 +1,7 @@
 # Acknowledgements
 This application makes use of the following third party libraries:
 
-## FACoreData
+## DStack
 
 Copyright (c) 2015 Softshag & Me <admin@softshag.dk>
 

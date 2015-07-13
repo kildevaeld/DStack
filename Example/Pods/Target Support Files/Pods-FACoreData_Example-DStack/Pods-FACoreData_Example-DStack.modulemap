@@ -1,0 +1,6 @@
+framework module DStack {
+  umbrella header "Pods-FACoreData_Example-DStack-umbrella.h"
+
+  export *
+  module * { export * }
+}

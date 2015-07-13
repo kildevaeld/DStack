@@ -42,12 +42,16 @@ extension NSManagedObjectContext {
     
     public func findOne(name: String, predicate: NSPredicate) -> NSManagedObject? {
         let result = self.find(name, predicate: predicate, sortKey: nil, sortAscending: true, limit: 1)
-        if result != nil || result?.count == 0 {
+        if result == nil || result?.count == 0 {
             return nil
         }
         
         return result?.first as? NSManagedObject
         
+    }
+    
+    public func findOne<T>(name: String, type: T.Type, predicate: NSPredicate) -> T? {
+        return self.findOne(name, predicate: predicate) as? T
     }
     
     public func find (name: String) -> [AnyObject]? {
@@ -134,5 +138,5 @@ extension NSManagedObjectContext {
         return true
         
     }
-    
 }
+

@@ -1,14 +1,14 @@
 PODS:
-  - FACoreData (0.1.0)
+  - DStack (0.1.0)
 
 DEPENDENCIES:
-  - FACoreData (from `../`)
+  - DStack (from `../`)
 
 EXTERNAL SOURCES:
-  FACoreData:
+  DStack:
     :path: "../"
 
 SPEC CHECKSUMS:
-  FACoreData: 8105296aaac837b2a2fdb09dc61caf4041172fa2
+  DStack: 0b42623ddae0760b8479fff2f520f3a7632725c3
 
 COCOAPODS: 0.37.1

@@ -1,9 +1,9 @@
-#include "Pods-FACoreData_Example-FACoreData.xcconfig"
+#include "Pods-FACoreData_Example-DStack.xcconfig"
 CONFIGURATION_BUILD_DIR = $PODS_FRAMEWORK_BUILD_PATH
 FRAMEWORK_SEARCH_PATHS = "$PODS_FRAMEWORK_BUILD_PATH"
 GCC_PREPROCESSOR_DEFINITIONS = $(inherited) COCOAPODS=1
-HEADER_SEARCH_PATHS = "${PODS_ROOT}/Headers/Private" "${PODS_ROOT}/Headers/Private/FACoreData" "${PODS_ROOT}/Headers/Public" "${PODS_ROOT}/Headers/Public/FACoreData"
-OTHER_LDFLAGS = -ObjC
+HEADER_SEARCH_PATHS = "${PODS_ROOT}/Headers/Private" "${PODS_ROOT}/Headers/Private/DStack" "${PODS_ROOT}/Headers/Public" "${PODS_ROOT}/Headers/Public/DStack"
+OTHER_LDFLAGS = ${PODS_FACOREDATA_EXAMPLE_DSTACK_OTHER_LDFLAGS} -ObjC
 OTHER_SWIFT_FLAGS = $(inherited) "-D" "COCOAPODS"
 PODS_FRAMEWORK_BUILD_PATH = $(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/Pods-FACoreData_Example
 PODS_ROOT = ${SRCROOT}

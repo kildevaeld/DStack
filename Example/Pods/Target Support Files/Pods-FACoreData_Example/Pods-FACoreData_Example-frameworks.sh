@@ -48,8 +48,8 @@ code_sign() {
 
 
 if [[ "$CONFIGURATION" == "Debug" ]]; then
-  install_framework 'FACoreData.framework'
+  install_framework 'DStack.framework'
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
-  install_framework 'FACoreData.framework'
+  install_framework 'DStack.framework'
 fi

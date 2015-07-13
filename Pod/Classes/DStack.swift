@@ -79,16 +79,11 @@ public func _databaseURL(path: String, from: NSURL?, force: Bool = false) -> NSU
 }
 
 public class DStack : NSObject {
-  public class func databaseURL (path: String, from: NSURL?, force: Bool) -> NSURL? {
+  public class func databaseURL (path: String, from: NSURL? = nil, force: Bool = false) -> NSURL? {
         return _databaseURL(path, from, force: force)
     }
     
-    
-    public class func with (store: String) -> DStack {
-        return self.with(store, from: nil)
-    }
-    
-  public class func with(store: String, from: NSURL?, force: Bool = false) -> DStack {
+  public class func with(store: String, from: NSURL? = nil, force: Bool = false) -> DStack {
         let model = NSManagedObjectModel.mergedModelFromBundles([NSBundle.mainBundle()])
         let storeURL = DStack.databaseURL(store,from: from, force: force)
         return DStack(model: model!, storeURL: storeURL!)
@@ -117,7 +112,7 @@ public class DStack : NSObject {
         self.persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: model);
         
         var error: NSError?
-        
+    
         self.persistentStoreCoordinator.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: storeURL, options: nil, error: &error)
         
         if error != nil {
@@ -154,7 +149,7 @@ public class DStack : NSObject {
         return context;
     }
     
-    public func workerContext (_ fn:(context: NSManagedObjectContext) -> Void) {
+    public func workerContext (fn:(context: NSManagedObjectContext) -> Void) {
         self.workerContext(false, fn)
     }
     
@@ -196,7 +191,8 @@ extension DStack {
     }
     
     
-    public func insert<T>(name: String, type: T.Type) -> T {
+    public func insert<T: NSManagedObject>(name: String, type: T.Type) -> T {
+        
         return self.mainContext.insertEntity(name) as! T
     }
     
@@ -206,6 +202,12 @@ extension DStack {
     
     public func find(name: String, predicate: NSPredicate) -> [AnyObject]? {
         return self.mainContext.find(name, predicate: predicate, sortKey: nil, sortAscending: false, limit: 0)
+    }
+}
+
+extension NSManagedObject {
+    public static func getEntityName () {
+        
     }
 }
 

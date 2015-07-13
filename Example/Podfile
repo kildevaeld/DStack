@@ -2,11 +2,11 @@ source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
 target 'FACoreData_Example', :exclusive => true do
-  pod "FACoreData", :path => "../"
+  pod "DStack", :path => "../"
 end
 
 target 'FACoreData_Tests', :exclusive => true do
-  pod "FACoreData", :path => "../"
+  pod "DStack", :path => "../"
 
 #pod 'Quick'
 #pod 'Nimble'
