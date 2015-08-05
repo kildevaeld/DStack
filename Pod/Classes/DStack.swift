@@ -171,7 +171,7 @@ public class DStack : NSObject {
     func rootContextDidSave (notification: NSNotification) {
         let context = notification.object as! NSManagedObjectContext;
         
-        if (context !== self.mainContext) {
+        if (/*context !== self.mainContext*/ context === self.rootContext) {
             self.mainContext.performBlock({ () -> Void in
                 self.mainContext.mergeChangesFromContextDidSaveNotification(notification)
             })
