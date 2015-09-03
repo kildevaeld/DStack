@@ -83,7 +83,7 @@ public class DStack : NSObject {
         return _databaseURL(path, from, force: force)
     }
     
-  public class func with(store: String, from: NSURL? = nil, force: Bool = false) -> DStack {
+  public class func with(store: String, from: NSURL? = nil, force: Bool = false) -> DStack? {
         let model = NSManagedObjectModel.mergedModelFromBundles([NSBundle.mainBundle()])
         let storeURL = DStack.databaseURL(store,from: from, force: force)
         return DStack(model: model!, storeURL: storeURL!)
@@ -107,33 +107,39 @@ public class DStack : NSObject {
         }
     }
     
-    public init (model: NSManagedObjectModel, storeURL: NSURL) {
+    public convenience init?(model: NSManagedObjectModel, storeURL: NSURL) {
         // Persistent store coordinator
-        self.persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: model);
+        let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: model);
         
         var error: NSError?
     
-        self.persistentStoreCoordinator.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: storeURL, options: nil, error: &error)
+        persistentStoreCoordinator.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: storeURL, options: nil, error: &error)
+        
+        
+        
+        self.init(persistentStoreCoordinator: persistentStoreCoordinator)
         
         if error != nil {
-            NSLog("Fucking error, man: %@", error!.localizedDescription)
-            
+            return nil
         }
+    }
+    
+    init (persistentStoreCoordinator:NSPersistentStoreCoordinator) {
         
-        
+        self.persistentStoreCoordinator = persistentStoreCoordinator
         
         var context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
         
         context.persistentStoreCoordinator = self.persistentStoreCoordinator
         context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
         self.rootContext = context
-        
+
         super.init()
         
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "rootContextDidSave:", name: NSManagedObjectContextDidSaveNotification, object: nil)
     }
     
-    public convenience init (modelURL:NSURL, storeURL:NSURL) {
+    public convenience init?(modelURL:NSURL, storeURL:NSURL) {
         
         var model = NSManagedObjectModel(contentsOfURL: modelURL)!
         self.init(model: model,storeURL:storeURL)
@@ -149,11 +155,7 @@ public class DStack : NSObject {
         return context;
     }
     
-    public func workerContext (fn:(context: NSManagedObjectContext) -> Void) {
-        self.workerContext(false, fn)
-    }
-    
-    public func workerContext (wait: Bool, _ fn:(context: NSManagedObjectContext) -> Void) {
+    public func workerContext (wait: Bool = false, _ fn:(context: NSManagedObjectContext) -> Void) {
         let worker = self.workerContext()
         
         func run () {
@@ -191,7 +193,7 @@ extension DStack {
     }
     
     
-    public func insert<T: NSManagedObject>(name: String, type: T.Type) -> T {
+    public func insert<T: NSManagedObject>(name: String) -> T {
         
         return self.mainContext.insertEntity(name) as! T
     }

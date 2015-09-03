@@ -27,6 +27,10 @@ func _request(name: String, context: NSManagedObjectContext, predicate: NSPredic
 }
 
 
+public protocol NamedEntity {
+    static var entityName: String { get }
+}
+
 extension NSManagedObjectContext {
     
     public func insertEntity(name: String) -> NSManagedObject? {
@@ -35,9 +39,19 @@ extension NSManagedObjectContext {
         return entity
     }
     
-    public func insertEntity<T>(name: String, type: T.Type) -> T? {
-        let entity = NSEntityDescription.insertNewObjectForEntityForName(name, inManagedObjectContext: self) as? T
+    public func insertEntity<T>(name: String) -> T {
+        let entity = NSEntityDescription.insertNewObjectForEntityForName(name, inManagedObjectContext: self) as! T
         return entity
+    }
+    
+    public func insertEntity<T: NSManagedObject>() -> T {
+        var name = NSStringFromClass(T.self)
+        let entity = NSEntityDescription.insertNewObjectForEntityForName(name, inManagedObjectContext: self) as! T
+        return entity
+    }
+    
+    public func insertEntity<T: NamedEntity>() -> T {
+        return self.insertEntity(T.entityName)
     }
     
     public func findOne(name: String, predicate: NSPredicate) -> NSManagedObject? {
