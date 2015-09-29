@@ -31,18 +31,29 @@ extension NSManagedObjectContext {
             4. Save the child context to the parent context (the main one) which will work,
             5. Save the main context - a NSObjectInaccessibleException will occur and Core Data will either crash your app or lock it up (a semaphore is not correctly released on the first error so the next fetch request will block forever.
             */
-            var objects = contextToSave!.insertedObjects
-        
-            contextToSave?.obtainPermanentIDsForObjects(Array(objects), error: &localError)
             
-            if localError != nil {
+            var obtained: Bool = false
+            var objects = contextToSave!.insertedObjects
+            
+            if objects.count > 0 {
+                
+            }
+            
+            contextToSave!.performBlockAndWait {
+                
+                
+                obtained = contextToSave!.obtainPermanentIDsForObjects(Array(objects), error: &localError)
+            }
+            
+            
+            if obtained == false {
                 if error != nil {
-                    //error = localError
+                    error.memory = localError
                 }
                 return false
             }
             
-            contextToSave?.performBlockAndWait({ () -> Void in
+            contextToSave!.performBlockAndWait({ () -> Void in
                 success = contextToSave!.save(&localError)
                 
                 if !success && localError == nil {
@@ -51,7 +62,9 @@ extension NSManagedObjectContext {
             })
             
             if !success {
-                //if (error != nil) {error = localError}
+                if error != nil {
+                    error.memory = localError
+                }
                 return false
             }
             

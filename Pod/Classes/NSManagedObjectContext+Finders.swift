@@ -39,8 +39,8 @@ extension NSManagedObjectContext {
         return entity
     }
     
-    public func insertEntity<T>(name: String) -> T {
-        let entity = NSEntityDescription.insertNewObjectForEntityForName(name, inManagedObjectContext: self) as! T
+    public func insertEntity<T>(name: String) -> T? {
+        let entity = NSEntityDescription.insertNewObjectForEntityForName(name, inManagedObjectContext: self) as? T
         return entity
     }
     
@@ -51,7 +51,7 @@ extension NSManagedObjectContext {
     }
     
     public func insertEntity<T: NamedEntity>() -> T {
-        return self.insertEntity(T.entityName)
+        return self.insertEntity(T.entityName)!
     }
     
     public func findOne(name: String, predicate: NSPredicate) -> NSManagedObject? {
@@ -61,6 +61,16 @@ extension NSManagedObjectContext {
         }
         
         return result?.first as? NSManagedObject
+        
+    }
+    
+    public func findOne<T: NSManagedObject>(name: String, predicate: NSPredicate) -> T? {
+        let result = self.find(name, predicate: predicate, sortKey: nil, sortAscending: true, limit: 1)
+        if result == nil || result?.count == 0 {
+            return nil
+        }
+        
+        return result?.first as? T
         
     }
     

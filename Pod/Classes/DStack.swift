@@ -172,10 +172,27 @@ public class DStack : NSObject {
     
     func rootContextDidSave (notification: NSNotification) {
         let context = notification.object as! NSManagedObjectContext;
-        
-        if (/*context !== self.mainContext*/ context === self.rootContext) {
+       
+       if (context !== self.mainContext && context === self.rootContext) {
             self.mainContext.performBlock({ () -> Void in
-                self.mainContext.mergeChangesFromContextDidSaveNotification(notification)
+                let tmp : NSDictionary = notification.userInfo!
+                for o in tmp[NSUpdatedObjectsKey] as! NSSet {
+                    let object = o as? NSManagedObject
+                    let objectID = object?.objectID
+                    if objectID != nil && !object!.objectID.temporaryID {
+                        var error: NSError?
+                        let updatedObject = self.mainContext.existingObjectWithID(objectID!, error: &error)
+                        
+                        if error != nil {
+                            print("Failed to get existing object for objectID \(objectID). Failed with error: \(error)\n")
+                        } else {
+                            updatedObject?.willAccessValueForKey(nil)
+                        }
+                    }
+                    
+                }
+                
+                //self.mainContext.mergeChangesFromContextDidSaveNotification(notification)
             })
         }
     }
