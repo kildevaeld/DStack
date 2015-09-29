@@ -12,15 +12,16 @@ import CoreData
 public func _databaseURL(path: String, from: NSURL?, force: Bool = false) -> NSURL? {
     
     let fileManager = NSFileManager.defaultManager()
-    
+
     let urls = fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
-    
-    if let documentDirectory: NSURL = urls.first as? NSURL {
+
+    if urls.count > 0 {
+        let documentDirectory: NSURL = urls.first!
         // This is where the database should be in the documents directory
         let finalDatabaseURL = documentDirectory.URLByAppendingPathComponent(path)
       
       if finalDatabaseURL.checkResourceIsReachableAndReturnError(nil) && force {
-        let contents = fileManager.contentsOfDirectoryAtURL(documentDirectory, includingPropertiesForKeys: nil, options: nil, error: nil)
+        let contents = try? fileManager.contentsOfDirectoryAtURL(documentDirectory, includingPropertiesForKeys: nil, options: [])
         if contents != nil {
           /*let predicate = NSPredicate(format:"absoluteString LIKE %@", path + "-*")
           let results = (contents! as NSArray).filteredArrayUsingPredicate(predicate)
@@ -28,51 +29,48 @@ public func _databaseURL(path: String, from: NSURL?, force: Bool = false) -> NSU
             fileManager.removeItemAtURL(file as! NSURL, error: nil)
             //fileManager.removeItemAtURL(file as , error: nil)
           }*/
-          let reg = NSRegularExpression(pattern: path + "-*", options: NSRegularExpressionOptions.CaseInsensitive, error: nil)
+          let reg = try? NSRegularExpression(pattern: path + "-*", options: NSRegularExpressionOptions.CaseInsensitive)
           
           for file in contents! {
-            let url = file as! NSURL
+            let url = file 
             let last = url.lastPathComponent!
-            let len = distance(last.startIndex, last.endIndex)
-            let n = reg!.numberOfMatchesInString(last, options: nil, range: NSMakeRange(0,len))
+            let len = last.startIndex.distanceTo(last.endIndex)
+            let n = reg!.numberOfMatchesInString(last, options: [], range: NSMakeRange(0,len))
             
             if n > 0 {
-              fileManager.removeItemAtURL(url, error: nil)
+                do {
+                    try fileManager.removeItemAtURL(url)
+                } catch _ {
+                }
             }
             
           }
         }
         
       }
-      
         if finalDatabaseURL.checkResourceIsReachableAndReturnError(nil) {
-            // The file already exists, so just return the URL
             return finalDatabaseURL
         } else {
             if from != nil {
-                let success = fileManager.copyItemAtURL(from!, toURL: finalDatabaseURL, error: nil)
+                let success: Bool
+                do {
+                    try fileManager.copyItemAtURL(from!, toURL: finalDatabaseURL)
+                    success = true
+                } catch _ {
+                    success = false
+                }
                 if success {
                     return finalDatabaseURL
                 } else {
-                    println("Couldn't copy file to final location!")
+                    print("Couldn't copy file to final location!")
                     return finalDatabaseURL
                 }
             }
-            // Copy the initial file from the application bundle to the documents directory
-            /*if let bundleURL = NSBundle.mainBundle().URLForResource("items", withExtension: "db") {
-                let success = fileManager.copyItemAtURL(bundleURL, toURL: finalDatabaseURL, error: nil)
-                if success {
-                    return finalDatabaseURL
-                } else {
-                    println("Couldn't copy file to final location!")
-                }
-            } else {
-                println("Couldn't find initial database in the bundle!")
-            }*/
             return finalDatabaseURL
         }
+      
     } else {
-        println("Couldn't get documents directory!")
+        print("Couldn't get documents directory!")
     }
     
     return nil
@@ -80,7 +78,7 @@ public func _databaseURL(path: String, from: NSURL?, force: Bool = false) -> NSU
 
 public class DStack : NSObject {
   public class func databaseURL (path: String, from: NSURL? = nil, force: Bool = false) -> NSURL? {
-        return _databaseURL(path, from, force: force)
+        return _databaseURL(path, from: from, force: force)
     }
     
   public class func with(store: String, from: NSURL? = nil, force: Bool = false) -> DStack? {
@@ -113,7 +111,11 @@ public class DStack : NSObject {
         
         var error: NSError?
     
-        persistentStoreCoordinator.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: storeURL, options: nil, error: &error)
+        do {
+            try persistentStoreCoordinator.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: storeURL, options: nil)
+        } catch let error1 as NSError {
+            error = error1
+        }
         
         
         
@@ -128,7 +130,7 @@ public class DStack : NSObject {
         
         self.persistentStoreCoordinator = persistentStoreCoordinator
         
-        var context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
+        let context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
         
         context.persistentStoreCoordinator = self.persistentStoreCoordinator
         context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
@@ -141,13 +143,13 @@ public class DStack : NSObject {
     
     public convenience init?(modelURL:NSURL, storeURL:NSURL) {
         
-        var model = NSManagedObjectModel(contentsOfURL: modelURL)!
+        let model = NSManagedObjectModel(contentsOfURL: modelURL)!
         self.init(model: model,storeURL:storeURL)
         
     }
     
     public func workerContext () -> NSManagedObjectContext {
-        var context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
+        let context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
         
         context.parentContext = self.rootContext
         context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
@@ -181,10 +183,18 @@ public class DStack : NSObject {
                     let objectID = object?.objectID
                     if objectID != nil && !object!.objectID.temporaryID {
                         var error: NSError?
-                        let updatedObject = self.mainContext.existingObjectWithID(objectID!, error: &error)
+                        let updatedObject: NSManagedObject?
+                        do {
+                            updatedObject = try self.mainContext.existingObjectWithID(objectID!)
+                        } catch let error1 as NSError {
+                            error = error1
+                            updatedObject = nil
+                        } catch {
+                            fatalError()
+                        }
                         
                         if error != nil {
-                            print("Failed to get existing object for objectID \(objectID). Failed with error: \(error)\n")
+                            print("Failed to get existing object for objectID \(objectID). Failed with error: \(error)\n", terminator: "")
                         } else {
                             updatedObject?.willAccessValueForKey(nil)
                         }

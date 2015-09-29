@@ -30,7 +30,13 @@ func userFunction(fn: String, name: String, key: String, attributeType: NSAttrib
     
     var error : NSError?
     
-    let objects = context.executeFetchRequest(request, error: &error)
+    let objects: [AnyObject]?
+    do {
+        objects = try context.executeFetchRequest(request)
+    } catch let error1 as NSError {
+        error = error1
+        objects = nil
+    }
     
     if (objects != nil && objects?.count > 0) {
         let result = objects!.first as? Dictionary<String,AnyObject> // as? Dictionary<String,AnyObject>
@@ -47,10 +53,10 @@ func userFunction(fn: String, name: String, key: String, attributeType: NSAttrib
 
 extension NSManagedObjectContext {
     public func maxValueForEntity(name: String, key: String, type:NSAttributeType) -> AnyObject? {
-        return userFunction("max", name, key, type, self)
+        return userFunction("max", name: name, key: key, attributeType: type, context: self)
     }
     
     public func minValueForEntity(name: String, key: String, type:NSAttributeType) -> AnyObject? {
-        return userFunction("min", name, key, type, self)
+        return userFunction("min", name: name, key: key, attributeType: type, context: self)
     }
 }

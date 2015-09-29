@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import FACoreData
+import DStack
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -25,25 +25,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //            return true
 //        }
         
-        let coredata = DStack.with("item.db")
+        let coredata = DStack.with("item.db")!
         
         let result = coredata.mainContext.count("Blog")
         
         NSLog("Found %i", result)
-        
-        var entity = coredata.insert("Blog", type:Blog.self)
+    
+        let entity: Blog = coredata.insert("Blog")
         entity.title = "Test title";
         entity.body = "Some body"
         
         NSLog("Entity %@", entity)
         
-        var error : NSError?
         
-        coredata.mainContext.saveToPersistentStore(&error)
-        
-        if error != nil {
-            NSLog("Error %@", error!.description)
+        do {
+            try coredata.mainContext.saveToPersistentStore()
+        } catch let e as NSError {
+            print("Error %@", e.description)
         }
+        
         
         return true
     }

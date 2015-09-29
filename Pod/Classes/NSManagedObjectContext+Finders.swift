@@ -10,8 +10,8 @@ import Foundation
 import CoreData
 
 func _request(name: String, context: NSManagedObjectContext, predicate: NSPredicate?) -> NSFetchRequest {
-    var request = NSFetchRequest()
-    var entity = NSEntityDescription.entityForName(name, inManagedObjectContext: context)
+    let request = NSFetchRequest()
+    let entity = NSEntityDescription.entityForName(name, inManagedObjectContext: context)
     
     request.entity = entity
     
@@ -45,7 +45,7 @@ extension NSManagedObjectContext {
     }
     
     public func insertEntity<T: NSManagedObject>() -> T {
-        var name = NSStringFromClass(T.self)
+        let name = NSStringFromClass(T.self)
         let entity = NSEntityDescription.insertNewObjectForEntityForName(name, inManagedObjectContext: self) as! T
         return entity
     }
@@ -110,7 +110,13 @@ extension NSManagedObjectContext {
         
         var error: NSError?
         
-        let results = self.executeFetchRequest(request, error: &error)
+        let results: [AnyObject]?
+        do {
+            results = try self.executeFetchRequest(request)
+        } catch let error1 as NSError {
+            error = error1
+            results = nil
+        }
     
         return results
     }
@@ -122,7 +128,7 @@ extension NSManagedObjectContext {
     
     public func count(name: String, predicate: NSPredicate?) -> Int {
         
-        let request = _request(name, self, predicate)
+        let request = _request(name, context: self, predicate: predicate)
         
         var error : NSError?
         
@@ -141,11 +147,17 @@ extension NSManagedObjectContext {
     
     public func deleteAllObjectsForEntity(name: String, predicate: NSPredicate?) -> Bool {
         
-        let request = _request(name, self, predicate)
+        let request = _request(name, context: self, predicate: predicate)
         
         var error : NSError?
         
-        let results = self.executeFetchRequest(request, error: &error)
+        let results: [AnyObject]?
+        do {
+            results = try self.executeFetchRequest(request)
+        } catch var error1 as NSError {
+            error = error1
+            results = nil
+        }
         
         if error != nil {
             return false

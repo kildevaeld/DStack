@@ -11,7 +11,8 @@ import CoreData
 
 extension NSManagedObjectContext {
     
-    @objc public func saveToPersistentStore(error: NSErrorPointer) -> Bool {
+    @objc public func saveToPersistentStore() throws {
+        var error: NSError! = NSError(domain: "Migrator", code: 0, userInfo: nil)
         
         
         
@@ -32,29 +33,37 @@ extension NSManagedObjectContext {
             5. Save the main context - a NSObjectInaccessibleException will occur and Core Data will either crash your app or lock it up (a semaphore is not correctly released on the first error so the next fetch request will block forever.
             */
             
-            var obtained: Bool = false
-            var objects = contextToSave!.insertedObjects
             
-            if objects.count > 0 {
+            let objects = contextToSave!.insertedObjects
+            
+            /*if objects.count > 0 {
                 
-            }
+            }*/
             
             contextToSave!.performBlockAndWait {
+                do {
+                    try contextToSave!.obtainPermanentIDsForObjects(Array(objects))
+                } catch let e as NSError {
+                    localError = e
+                }
                 
-                
-                obtained = contextToSave!.obtainPermanentIDsForObjects(Array(objects), error: &localError)
             }
             
             
-            if obtained == false {
-                if error != nil {
-                    error.memory = localError
-                }
-                return false
+            if localError != nil {
+                throw localError!
             }
             
             contextToSave!.performBlockAndWait({ () -> Void in
-                success = contextToSave!.save(&localError)
+                do {
+                    try contextToSave!.save()
+                    success = true
+                } catch let error as NSError {
+                    localError = error
+                    success = false
+                } catch {
+                    fatalError()
+                }
                 
                 if !success && localError == nil {
                    NSLog("Saving of managed object context failed, but a `nil` value for the `error` argument was returned. This typically indicates an invalid implementation of a key-value validation method exists within your model. This violation of the API contract may result in the save operation being mis-interpretted by callers that rely on the availability of the error.")
@@ -62,23 +71,18 @@ extension NSManagedObjectContext {
             })
             
             if !success {
-                if error != nil {
-                    error.memory = localError
-                }
-                return false
+                throw localError!
             }
             
             if contextToSave?.parentContext != nil && contextToSave?.persistentStoreCoordinator == nil {
                 NSLog("Reached the end of the chain of nested managed object contexts without encountering a persistent store coordinator. Objects are not fully persisted.")
-                return false
+                throw error
             }
             
             contextToSave = contextToSave?.parentContext
             
             
         }
-        
-        return true
         
         
     }
