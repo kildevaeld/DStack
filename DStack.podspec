@@ -9,7 +9,7 @@
 
 Pod::Spec.new do |s|
   s.name             = "DStack"
-  s.version          = "0.1.0"
+  s.version          = "0.2.0"
   s.summary          = "A short description of DStack."
   s.description      = <<-DESC
                        An optional longer description of DStack
@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
                        * Don't worry about the indent, we strip it!
                        DESC
   s.homepage         = "https://github.com/kildevaeld/DStack"
-  
+
   s.license          = 'MIT'
   s.author           = { "Softshag & Me" => "admin@softshag.dk" }
   s.source           = { :git => "https://github.com/kildevaeld/DStack.git", :tag => s.version.to_s }
@@ -27,14 +27,8 @@ Pod::Spec.new do |s|
   s.requires_arc = true
 
   s.source_files = 'Pod/Classes/**/*'
-  
-  s.resource_bundles = {
-    'DStack' => ['Pod/Assets/*.png']
-  }
 
   s.frameworks = "CoreData"
   s.dependency 'XCGLogger', '~> 3.0'
-  # s.public_header_files = 'Pod/Classes/**/*.h'
-  # s.frameworks = 'UIKit', 'MapKit'
-  # s.dependency 'AFNetworking', '~> 2.3'
+
 end
