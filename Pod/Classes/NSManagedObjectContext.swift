@@ -112,7 +112,7 @@ extension NSManagedObjectContext {
     :discussion: Must be called from a perform block action
     - parameter completionHandler:  Completion block to run after changes are saved
     */
-    func saveToPersistentStore(completionHandler: CompletionHandler? = nil)
+    public func saveToPersistentStore(completionHandler: CompletionHandler? = nil)
     {
         do {
             try obtainPermanentIDsForInsertedObjects()
@@ -128,6 +128,26 @@ extension NSManagedObjectContext {
             }
         } catch let error as NSError {
             completionHandler?(arg: { throw error })
+        }
+    }
+    
+    public func saveToPersistentStoreAndWait() throws
+    {
+        var localError: ErrorType?
+        try obtainPermanentIDsForInsertedObjects()
+        try save()
+        
+        if let parentContext = self.parentContext {
+            parentContext.performBlockAndWait {
+                do {
+                    try parentContext.saveToPersistentStoreAndWait()
+                } catch {
+                    localError = error
+                }
+            }
+            if localError != nil {
+                throw localError!
+            }
         }
     }
     
