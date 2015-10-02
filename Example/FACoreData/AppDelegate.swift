@@ -30,19 +30,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let result = coredata.mainContext.count("Blog")
         
         NSLog("Found %i", result)
-    
-        let entity: Blog = coredata.insert("Blog")
-        entity.title = "Test title";
-        entity.body = "Some body"
         
-        NSLog("Entity %@", entity)
+        let context = coredata.workerContext
         
-        
-        do {
-            try coredata.mainContext.saveToPersistentStore()
-        } catch let e as NSError {
-            print("Error %@", e.description)
-        }
+        context.performBlock({ (context) -> CommitAction in
+            do {
+                let entity: Blog = try context.insertEntity()
+                
+                entity.title = "Test Title"
+                entity.body = "Some body"
+                
+                return .SaveToPersistentStore
+                
+            } catch {
+                return .DoNothing
+            }
+            
+        })
         
         
         return true

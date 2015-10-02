@@ -311,12 +311,14 @@ extension DStack {
     }
     
     public func find(name: String, context:Context = .Main) -> [AnyObject]? {
-        let context: NSManagedObjectContext
+        let ctx: NSManagedObjectContext
         switch context {
         case .Main:
-            context =
+            ctx = self.stack.mainContext
+        case .Worker:
+            ctx = self.stack.workerContext
         }
-        return self.mainContext.find(name, predicate: nil, sortKey: nil, sortAscending: true, limit: 0)
+        return ctx.find(name, predicate: nil, sortKey: nil, sortAscending: true, limit: 0)
     }
     
     public func find(name: String, predicate: NSPredicate) -> [AnyObject]? {
