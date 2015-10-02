@@ -1,5 +1,7 @@
 PODS:
-  - DStack (0.1.0)
+  - DStack (0.1.0):
+    - XCGLogger (~> 3.0)
+  - XCGLogger (3.0)
 
 DEPENDENCIES:
   - DStack (from `../`)
@@ -9,6 +11,7 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  DStack: 0b42623ddae0760b8479fff2f520f3a7632725c3
+  DStack: 1d7d779adc27c6af50044dca546642cae4c052ca
+  XCGLogger: 5802533aff8bafc8b3b9776ab8972576f31d0a4e
 
-COCOAPODS: 0.37.1
+COCOAPODS: 0.39.0.beta.4

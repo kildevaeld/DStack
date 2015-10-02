@@ -2,7 +2,7 @@
   "name": "DStack",
   "version": "0.1.0",
   "summary": "A short description of DStack.",
-  "description": "                       An optional longer description of DStack\n\n                       * Markdown format.\n                       * Don't worry about the indent, we strip it!\n",
+  "description": "An optional longer description of DStack\n\n* Markdown format.\n* Don't worry about the indent, we strip it!",
   "homepage": "https://github.com/kildevaeld/DStack",
   "license": "MIT",
   "authors": {
@@ -22,5 +22,10 @@
       "Pod/Assets/*.png"
     ]
   },
-  "frameworks": "CoreData"
+  "frameworks": "CoreData",
+  "dependencies": {
+    "XCGLogger": [
+      "~> 3.0"
+    ]
+  }
 }

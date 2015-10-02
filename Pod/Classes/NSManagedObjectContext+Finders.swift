@@ -27,31 +27,33 @@ func _request(name: String, context: NSManagedObjectContext, predicate: NSPredic
 }
 
 
-public protocol NamedEntity {
-    static var entityName: String { get }
-}
+
 
 extension NSManagedObjectContext {
-    
+    // MARK: - InsertEntity
     public func insertEntity(name: String) -> NSManagedObject? {
-        let entity = NSEntityDescription.insertNewObjectForEntityForName(name, inManagedObjectContext: self) as? NSManagedObject
+        let entity = NSEntityDescription.insertNewObjectForEntityForName(name, inManagedObjectContext: self)
         
         return entity
     }
     
-    public func insertEntity<T>(name: String) -> T? {
+    public func insertEntity<T>(name: String) throws -> T? {
         let entity = NSEntityDescription.insertNewObjectForEntityForName(name, inManagedObjectContext: self) as? T
         return entity
     }
     
-    public func insertEntity<T: NSManagedObject>() -> T {
+    public func insertEntity<T: NSManagedObject>() throws -> T {
         let name = NSStringFromClass(T.self)
         let entity = NSEntityDescription.insertNewObjectForEntityForName(name, inManagedObjectContext: self) as! T
         return entity
     }
     
-    public func insertEntity<T: NamedEntity>() -> T {
-        return self.insertEntity(T.entityName)!
+    public func insertEntity<T: NamedEntity>() throws -> T {
+        return try self.insertEntity(T.entityName)!
+    }
+    
+    public func insertEntity<T: NamedEntity>(type:T.Type) throws -> T {
+        return try self.insertEntity(type.entityName)!
     }
     
     public func findOne(name: String, predicate: NSPredicate) -> NSManagedObject? {
@@ -108,13 +110,10 @@ extension NSManagedObjectContext {
             request.sortDescriptors = [NSSortDescriptor(key: sortKey!, ascending: sortAscending)]
         }
         
-        var error: NSError?
-        
         let results: [AnyObject]?
         do {
             results = try self.executeFetchRequest(request)
-        } catch let error1 as NSError {
-            error = error1
+        } catch let error as NSError {
             results = nil
         }
     

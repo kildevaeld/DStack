@@ -8,46 +8,49 @@
 
 import Foundation
 import CoreData
+import XCGLogger
 
+
+/*
 public func _databaseURL(path: String, from: NSURL?, force: Bool = false) -> NSURL? {
     
     let fileManager = NSFileManager.defaultManager()
-
+    
     let urls = fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
-
+    
     if urls.count > 0 {
         let documentDirectory: NSURL = urls.first!
         // This is where the database should be in the documents directory
         let finalDatabaseURL = documentDirectory.URLByAppendingPathComponent(path)
-      
-      if finalDatabaseURL.checkResourceIsReachableAndReturnError(nil) && force {
-        let contents = try? fileManager.contentsOfDirectoryAtURL(documentDirectory, includingPropertiesForKeys: nil, options: [])
-        if contents != nil {
-          /*let predicate = NSPredicate(format:"absoluteString LIKE %@", path + "-*")
-          let results = (contents! as NSArray).filteredArrayUsingPredicate(predicate)
-          for file in results {
-            fileManager.removeItemAtURL(file as! NSURL, error: nil)
-            //fileManager.removeItemAtURL(file as , error: nil)
-          }*/
-          let reg = try? NSRegularExpression(pattern: path + "-*", options: NSRegularExpressionOptions.CaseInsensitive)
-          
-          for file in contents! {
-            let url = file 
-            let last = url.lastPathComponent!
-            let len = last.startIndex.distanceTo(last.endIndex)
-            let n = reg!.numberOfMatchesInString(last, options: [], range: NSMakeRange(0,len))
-            
-            if n > 0 {
-                do {
-                    try fileManager.removeItemAtURL(url)
-                } catch _ {
+        
+        if finalDatabaseURL.checkResourceIsReachableAndReturnError(nil) && force {
+            let contents = try? fileManager.contentsOfDirectoryAtURL(documentDirectory, includingPropertiesForKeys: nil, options: [])
+            if contents != nil {
+                /*let predicate = NSPredicate(format:"absoluteString LIKE %@", path + "-*")
+                let results = (contents! as NSArray).filteredArrayUsingPredicate(predicate)
+                for file in results {
+                fileManager.removeItemAtURL(file as! NSURL, error: nil)
+                //fileManager.removeItemAtURL(file as , error: nil)
+                }*/
+                let reg = try? NSRegularExpression(pattern: path + "-*", options: NSRegularExpressionOptions.CaseInsensitive)
+                
+                for file in contents! {
+                    let url = file
+                    let last = url.lastPathComponent!
+                    let len = last.startIndex.distanceTo(last.endIndex)
+                    let n = reg!.numberOfMatchesInString(last, options: [], range: NSMakeRange(0,len))
+                    
+                    if n > 0 {
+                        do {
+                            try fileManager.removeItemAtURL(url)
+                        } catch _ {
+                        }
+                    }
+                    
                 }
             }
             
-          }
         }
-        
-      }
         if finalDatabaseURL.checkResourceIsReachableAndReturnError(nil) {
             return finalDatabaseURL
         } else {
@@ -68,7 +71,7 @@ public func _databaseURL(path: String, from: NSURL?, force: Bool = false) -> NSU
             }
             return finalDatabaseURL
         }
-      
+        
     } else {
         print("Couldn't get documents directory!")
     }
@@ -77,11 +80,23 @@ public func _databaseURL(path: String, from: NSURL?, force: Bool = false) -> NSU
 }
 
 public class DStack : NSObject {
-  public class func databaseURL (path: String, from: NSURL? = nil, force: Bool = false) -> NSURL? {
+    
+    static var log: XCGLogger {
+        let log = XCGLogger()
+        #if DTACK_DEBUG
+            log.setup(.Debug, showThreadName: false, showLogLevel: true, showFileNames: false, showLineNumbers: false, writeToFile: nil, fileLogLevel: nil)
+        #else
+            log.setup(.Severe, showThreadName: true, showLogLevel: true, showFileNames: true, showLineNumbers: true, writeToFile: nil)
+        #endif
+            
+        return log
+    }
+    
+    public class func databaseURL (path: String, from: NSURL? = nil, force: Bool = false) -> NSURL? {
         return _databaseURL(path, from: from, force: force)
     }
     
-  public class func with(store: String, from: NSURL? = nil, force: Bool = false) -> DStack? {
+    public class func with(store: String, from: NSURL? = nil, force: Bool = false) -> DStack? {
         let model = NSManagedObjectModel.mergedModelFromBundles([NSBundle.mainBundle()])
         let storeURL = DStack.databaseURL(store,from: from, force: force)
         return DStack(model: model!, storeURL: storeURL!)
@@ -110,7 +125,7 @@ public class DStack : NSObject {
         let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: model);
         
         var error: NSError?
-    
+        
         do {
             try persistentStoreCoordinator.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: storeURL, options: nil)
         } catch let error1 as NSError {
@@ -135,7 +150,7 @@ public class DStack : NSObject {
         context.persistentStoreCoordinator = self.persistentStoreCoordinator
         context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
         self.rootContext = context
-
+        
         super.init()
         
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "rootContextDidSave:", name: NSManagedObjectContextDidSaveNotification, object: nil)
@@ -174,8 +189,8 @@ public class DStack : NSObject {
     
     func rootContextDidSave (notification: NSNotification) {
         let context = notification.object as! NSManagedObjectContext;
-       
-       if (context !== self.mainContext && context === self.rootContext) {
+        
+        if (context !== self.mainContext && context === self.rootContext) {
             self.mainContext.performBlock({ () -> Void in
                 let tmp : NSDictionary = notification.userInfo!
                 for o in tmp[NSUpdatedObjectsKey] as! NSSet {
@@ -211,21 +226,96 @@ public class DStack : NSObject {
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
     
+}*/
+
+func installSeedIfNeeded (seed:NSURL, destination:NSURL) throws {
+    var error: NSError?
+    if !seed.checkResourceIsReachableAndReturnError(&error) {
+        throw DStackError.UnknownError("seed", error!)
+    }
+    
+    if destination.checkResourceIsReachableAndReturnError(&error) {
+        return
+    }
+    
+    try NSFileManager.defaultManager().copyItemAtURL(seed, toURL: destination)
+    
+}
+
+public class DStack {
+    
+    public class func with(store: String, from: NSURL? = nil, force: Bool = false) -> DStack? {
+        let url = NSPersistentStore.URLForSQLiteStoreName(store)
+        //let model = NSManagedObjectModel.mergedModelFromBundles([NSBundle.mainBundle()])
+        
+        if from != nil {
+            do {
+                try installSeedIfNeeded(from!, destination: url!)
+            } catch let error {
+                DStack.log.error("Error \(error)")
+                return nil
+            }
+        }
+        
+        let ps = NSPersistentStoreCoordinator(automigrating: true, deleteOnMismatch: force, URL: url)
+        if ps == nil {
+            return nil
+        }
+        return DStack(persistentStoreCoordinator: ps!)
+    }
+    
+    let stack: CoreDataStack
+    
+    public var mainContext: NSManagedObjectContext {
+        return stack.mainContext
+    }
+    public var workerContext: NSManagedObjectContext {
+        return stack.workerContext
+    }
+    
+    static var log: XCGLogger {
+        let log = XCGLogger()
+        #if DTACK_DEBUG
+            log.setup(.Debug, showThreadName: true, showLogLevel: true, showFileNames: true, showLineNumbers: true, writeToFile: nil, fileLogLevel: nil)
+            #else
+            log.setup(.Severe, showThreadName: true, showLogLevel: true, showFileNames: true, showLineNumbers: true, writeToFile: nil)
+        #endif
+        
+        return log
+    }
+    
+    init(persistentStoreCoordinator: NSPersistentStoreCoordinator) {
+        self.stack = CoreDataStack(persistentStoreCoordinator: persistentStoreCoordinator)
+    }
 }
 
 extension DStack {
-
+    
+    /*public func insert<T: NamedEntity>() -> T {
+        return self.insert(type:T.dynamicType.entityName)
+    }
+    
+    public func insert<T: NamedEntity>(type:T.Type) -> T {
+        return
+    }*/
+    
+    
+    
     public func insert(name: String) -> NSManagedObject? {
         return self.mainContext.insertEntity(name)
     }
     
     
     public func insert<T: NSManagedObject>(name: String) -> T {
-        
         return self.mainContext.insertEntity(name) as! T
     }
     
-    public func find(name: String) -> [AnyObject]? {
+    public func find(name: String, context:Context = .Main) -> [AnyObject]? {
+        let context: NSManagedObjectContext
+        switch context {
+        case .Main:
+            context =
+        }
         return self.mainContext.find(name, predicate: nil, sortKey: nil, sortAscending: true, limit: 0)
     }
     
@@ -234,10 +324,5 @@ extension DStack {
     }
 }
 
-extension NSManagedObject {
-    public static func getEntityName () {
-        
-    }
-}
 
 
