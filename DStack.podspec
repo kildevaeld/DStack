@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
 
   s.license          = 'MIT'
   s.author           = { "Softshag & Me" => "admin@softshag.dk" }
-  s.source           = { :git => "https://github.com/kildevaeld/DStack.git", :tag => s.version.to_s }
+  s.source           = { :git => "https://github.com/kildevaeld/DStack.git", :tag => 'v' + s.version.to_s }
 
   s.platform     = :ios, '8.0'
   s.requires_arc = true
